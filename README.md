@@ -1,1 +1,1 @@
-# Neural-network-from-scratch-in-C
+# Neural network from-scratch in C
