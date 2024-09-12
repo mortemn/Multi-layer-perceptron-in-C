@@ -1,27 +1,35 @@
 #include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
-#include <stdlib.h>
+#include "math_utils.h"
 
 #define MAXCHAR 10000
 
 int data[60000][785];
-int data_dev[785][1000];
-int data_train[785][59000];
+int data_train[785][60000];
+int sizes[3] = {784, 30, 10};
 
-void shuffle(int *array, size_t n)
-{
-    if (n > 1) 
-    {
-        size_t i;
-        for (i = 0; i < n - 1; i++) 
-        {
-          size_t j = i + rand() / (RAND_MAX / (n - i) + 1);
-          int t = array[j];
-          array[j] = array[i];
-          array[i] = t;
-        }
+struct Weight {
+    float **weights;
+    int size_1;
+    int size_2;
+};
+
+void init_biases(float *biases[]) {
+    for (int i = 0; i < sizes[1]; i++) {
+        biases[0][i] = randn();
     }
+
+    for (int i = 0; i < sizes[2]; i++) {
+        biases[1][i] = randn();
+    }
+}
+
+void init_weights(struct Weight weight) {
+    // for (int i = 0; i < weight.size_1; i++) {
+    //     for (int j = 0; j < weight.size_2; j++) {
+    //         weight.weights[i][j] = randn();
+    //     }
+    // }
 }
 
 int main() {
@@ -51,17 +59,26 @@ int main() {
 
     shuffle(data, 60000);
 
-    for (int i = 0; i < 1000; i++) {
-        for (int j = 0; j < 785; j++) {
-            data_dev[j][i] = data[i][j];
-        }
-    }
-
-    for (int i = 0; i < 59000; i++) {
+    for (int i = 0; i < 60000; i++) {
         for (int j = 0; j < 785; j++) {
             data_train[j][i] = data[i + 1000][j];
         }
-    } 
+    }
+
+    float *biases[] = {malloc(sizes[1] * sizeof(float)), malloc(sizes[2] * sizeof(float))};
+
+    float weights_10[sizes[1]][sizes[0]];
+    float weights_21[sizes[2]][sizes[1]];
+
+    float* point_w1 = &weights_10[0][0];
+    float* point_w2 = &weights_21[0][0];
+
+    struct Weight weight_1 = {&point_w1, sizes[1], sizes[0]};
+    struct Weight weight_2 = {&point_w2, sizes[2], sizes[1]};
+
+    init_biases(biases); 
+
+    init_weights(weight_1);
 
     fclose(fp);
 
