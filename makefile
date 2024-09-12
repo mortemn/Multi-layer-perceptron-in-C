@@ -1,5 +1,5 @@
 all: clean
-	gcc main.c math_utils.c -o main
+	gcc ./source/*.c -o main
 
 clean:
 	rm -f main
