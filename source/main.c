@@ -1,11 +1,12 @@
-#include <stdio.h>
-#include <string.h>
 #include "math_utils.h"
+#include "csv_reader.h"
 
 #define MAXCHAR 10000
 
-int data[60000][785];
-int data_train[785][60000];
+int num_pixels = 784;
+int num_train = 60000;
+float data_train[784][60000];
+
 int sizes[3] = {784, 30, 10};
 
 struct Weight {
@@ -33,37 +34,7 @@ void init_weights(struct Weight weight) {
 }
 
 int main() {
-    FILE *fp;
-    char row[MAXCHAR];
-    char *token;
-
-    fp = fopen("mnist_train.csv", "r");
-
-    // Gets first row from csv.
-    fgets(row, MAXCHAR, fp);
-
-    // Loads contents of training csv into array.
-    int i = 0;
-    while(!feof(fp)) {
-        fgets(row, MAXCHAR, fp);
-        token = strtok(row, ",");
-
-        int j = 0;
-        while(token != NULL) {
-            data[i][j] = atoi(token);
-            token = strtok(NULL, ",");
-            j++;
-        }
-        i++;
-    }
-
-    shuffle(data, 60000);
-
-    for (int i = 0; i < 60000; i++) {
-        for (int j = 0; j < 785; j++) {
-            data_train[j][i] = data[i + 1000][j];
-        }
-    }
+    load_data_train(num_train, num_pixels, data_train);
 
     float *biases[] = {malloc(sizes[1] * sizeof(float)), malloc(sizes[2] * sizeof(float))};
 
@@ -79,8 +50,6 @@ int main() {
     init_biases(biases); 
 
     init_weights(weight_1);
-
-    fclose(fp);
 
     return 0;
 }
