@@ -4,12 +4,12 @@
 
 #define MAXCHAR 10000
 
-void load_data(int num_train, int num_pixels, int data[num_train][num_pixels]) {
+void load_data(int num_train, int num_pixels, int data[num_train][num_pixels], char *path) {
     FILE *fp;
     char row[MAXCHAR];
     char *token;
 
-    fp = fopen("mnist_train.csv", "r");
+    fp = fopen(path, "r");
 
     // Gets first row from csv.
     fgets(row, MAXCHAR, fp);
@@ -35,11 +35,27 @@ void load_data(int num_train, int num_pixels, int data[num_train][num_pixels]) {
 void load_data_train(int num_train, int num_pixels, float data_train[num_train][num_pixels]) {
     int (*data)[num_pixels] = malloc(sizeof(int[num_train][num_pixels]));
 
-    load_data(num_train, num_pixels, data);
+    load_data(num_train, num_pixels, data, "mnist_train.csv");
 
     shuffle(*data, num_train);
 
     for (int i = 0; i < num_train; i++) {
+        for (int j = 0; j < num_pixels; j++) {
+            data_train[j][i] = data[i][j];
+        }
+    }
+
+    free(data);
+}
+
+void load_data_test(int num_test, int num_pixels, float data_train[num_test][num_pixels]) {
+    int (*data)[num_pixels] = malloc(sizeof(int[num_test][num_pixels]));
+
+    load_data(num_test, num_pixels, data, "mnist_test.csv");
+
+    shuffle(*data, num_test);
+
+    for (int i = 0; i < num_test; i++) {
         for (int j = 0; j < num_pixels; j++) {
             data_train[j][i] = data[i][j];
         }

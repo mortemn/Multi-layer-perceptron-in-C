@@ -17,6 +17,10 @@ void free_matrix(Matrix *matrix);
 
 void mul_matrix(Matrix *a, Matrix *b, Matrix *c);
 
+void add_matrix(Matrix *a, Matrix *b, Matrix *c);
+
+void sigmoid_matrix(Matrix *a, Matrix *b);
+
 void print_matrix(Matrix *matrix);
 
 float sigmoid(float);

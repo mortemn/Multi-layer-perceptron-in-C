@@ -10,4 +10,6 @@ typedef struct Network {
 
 void init_network(Network *network, int num_layers, int *sizes);
 
+void forward_prop(Network *network, struct Matrix *input, struct Matrix *output);
+
 #endif

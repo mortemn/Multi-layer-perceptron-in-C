@@ -10,6 +10,14 @@ struct Matrix {
     float **data;
 };
 
+float sigmoid(float x) {
+    return 1 / (1 + exp(-x));
+}
+
+float sigmoid_derivative(float x) {
+    return x * (1 - x);
+}
+
 // Samples from a normal distribution using Marsaglia polar method.
 float randn() {
     static bool hasSpare = false;
@@ -34,7 +42,7 @@ float randn() {
 void init_matrix(struct Matrix *matrix, int rows, int cols) {
     matrix->rows = rows;
     matrix->cols = cols;
-    matrix->data = malloc(rows * sizeof(float *));
+    matrix->data = malloc(rows * cols * sizeof(float *));
     for (int i = 0; i < rows; i++) {
         matrix->data[i] = malloc(cols * sizeof(float));
     }
@@ -55,9 +63,23 @@ void mul_matrix(struct Matrix *a, struct Matrix *b, struct Matrix *c) {
             for (int k = 0; k < a->cols; k++) {
                 c->data[i][j] += a->data[i][k] * b->data[k][j];
             }
+        }
     }
-    c->rows = a->rows;
-    c->cols = b->cols;
+}
+
+void add_matrix(struct Matrix *a, struct Matrix *b, struct Matrix *c) {
+    for (int i = 0; i < a->rows; i++) {
+        for (int j = 0; j < a->cols; j++) {
+            c->data[i][j] = a->data[i][j] + b->data[i][j]; 
+        }
+    }
+}
+
+void sigmoid_matrix(struct Matrix *a, struct Matrix *b) {
+    for (int i = 0; i < a->rows; i++) {
+        for (int j = 0; j < a->cols; j++) {
+            b->data[i][j] = sigmoid(a->data[i][j]);
+        }
     }
 }
 
@@ -76,14 +98,6 @@ void randn_matrix(struct Matrix *matrix) {
             matrix->data[i][j] = randn();
         }
     }
-}
-
-float sigmoid(float x) {
-    return 1 / (1 + exp(-x));
-}
-
-float sigmoid_derivative(float x) {
-    return x * (1 - x);
 }
 
 void shuffle(int *array, size_t n) {
