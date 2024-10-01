@@ -100,16 +100,17 @@ void randn_matrix(struct Matrix *matrix) {
     }
 }
 
-void shuffle(int *array, size_t n) {
-    if (n > 1) 
-    {
-        size_t i;
-        for (i = 0; i < n - 1; i++) 
-        {
-          size_t j = i + rand() / (RAND_MAX / (n - i) + 1);
-          int t = array[j];
-          array[j] = array[i];
-          array[i] = t;
+void shuffle(int rows, int cols, float data[rows][cols]) {
+    int rand_col = 0;
+    float temp;
+
+    for (int j = 0; j < cols; j++) {
+        rand_col = rand() % cols;
+            
+        for (int i = 0; i < rows; i++) {
+            temp = data[i][j];
+            data[i][j] = data[i][rand_col];
+            data[i][rand_col] = temp;
         }
     }
 }

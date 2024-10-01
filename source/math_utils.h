@@ -29,6 +29,6 @@ float sigmoid_derivative(float);
 
 float randn();
 
-void shuffle(int *, size_t);
+void shuffle(int rows, int cols, float data[rows][cols]);
 
 #endif

@@ -2,6 +2,10 @@
 #include <stdio.h>
 #include "math_utils.h"
 
+extern int num_pixels;
+extern int num_train;
+extern int num_test;
+
 struct Network {
     int num_layers;
     int *sizes;
@@ -26,6 +30,7 @@ void init_network(struct Network *network, int num_layers, int *sizes) {
     }
 }
 
+// Forward propagation algorithm (feedforward).
 void forward_prop(struct Network *network, struct Matrix *input, struct Matrix *output) {
     struct Matrix z;
 
@@ -33,6 +38,7 @@ void forward_prop(struct Network *network, struct Matrix *input, struct Matrix *
         init_matrix(&z, network->weights[i].rows, input->cols);
         init_matrix(output, network->weights[i].rows, input->cols);
 
+        // w * a + b.
         mul_matrix(&network->weights[i], input, &z);
         add_matrix(&z, &network->biases[i], output);
         sigmoid_matrix(output, output);
@@ -41,6 +47,13 @@ void forward_prop(struct Network *network, struct Matrix *input, struct Matrix *
         *input = *output;
     }
 
-    print_matrix(output);
     free_matrix(&z);
+}
+
+void sgd(struct Network *network, float data_train[num_pixels][num_train], int labels_train[num_train], float data_test[num_pixels][num_test], int labels_test[num_test], int epochs, int mini_batch_size, float eta) {
+
+    shuffle(num_pixels, num_train, data_train);
+    
+    for (int i = 0; i < epochs; i++) {
+    }
 }

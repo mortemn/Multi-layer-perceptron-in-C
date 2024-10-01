@@ -36,5 +36,7 @@ int main() {
 
     forward_prop(&network, &input, &output);
 
+    sgd(&network, data_train, labels_train, data_test, labels_test, 30, 10, 3.0);
+
     return 0;
 }
