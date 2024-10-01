@@ -37,6 +37,7 @@ void forward_prop(struct Network *network, struct Matrix *input, struct Matrix *
         add_matrix(&z, &network->biases[i], output);
         sigmoid_matrix(output, output);
 
+        free_matrix(input);
         *input = *output;
     }
 
