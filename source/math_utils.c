@@ -3,12 +3,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include "network.h"
-
-struct Matrix {
-    int rows;
-    int cols;
-    float **data;
-};
+#include "math_utils.h"
 
 float sigmoid(float x) {
     return 1 / (1 + exp(-x));
@@ -67,6 +62,14 @@ void mul_matrix(struct Matrix *a, struct Matrix *b, struct Matrix *c) {
     }
 }
 
+void hadamard_matrix(struct Matrix *a, struct Matrix *b, struct Matrix *c) {
+    for (int i = 0; i < a->rows; i++) {
+        for (int j = 0; j < a->cols; j++) {
+            c->data[i][j] = a->data[i][j] * b->data[i][j];
+        }
+    }
+}
+
 void add_matrix(struct Matrix *a, struct Matrix *b, struct Matrix *c) {
     for (int i = 0; i < a->rows; i++) {
         for (int j = 0; j < a->cols; j++) {
@@ -75,10 +78,26 @@ void add_matrix(struct Matrix *a, struct Matrix *b, struct Matrix *c) {
     }
 }
 
+void sub_matrix(struct Matrix *a, struct Matrix *b, struct Matrix *c) {
+    for (int i = 0; i < a->rows; i++) {
+        for (int j = 0; j < a->cols; j++) {
+            c->data[i][j] = a->data[i][j] - b->data[i][j]; 
+        }
+    }
+}
+
 void sigmoid_matrix(struct Matrix *a, struct Matrix *b) {
     for (int i = 0; i < a->rows; i++) {
         for (int j = 0; j < a->cols; j++) {
             b->data[i][j] = sigmoid(a->data[i][j]);
+        }
+    }
+}
+
+void sigmoid_derivative_matrix(struct Matrix *a, struct Matrix *b) {
+    for (int i = 0; i < a->rows; i++) {
+        for (int j = 0; j < a->cols; j++) {
+            b->data[i][j] = sigmoid_derivative(a->data[i][j]);
         }
     }
 }
@@ -96,6 +115,23 @@ void randn_matrix(struct Matrix *matrix) {
     for (int i = 0; i < matrix->rows; i++) {
         for (int j = 0; j < matrix->cols; j++) {
             matrix->data[i][j] = randn();
+        }
+    }
+}
+
+void zero_matrix(struct Matrix *matrix) {
+    for (int i = 0; i < matrix->rows; i++) {
+        for (int j = 0; j < matrix->cols; j++) {
+            matrix->data[i][j] = 0;
+        }
+    }
+}
+
+void transpose_matrix(struct Matrix *a, struct Matrix *b) {
+    init_matrix(b, a->cols, a->rows);
+    for (int i = 0; i < a->rows; i++) {
+        for (int j = 0; j < a->cols; j++) {
+            b->data[j][i] = a->data[i][j];
         }
     }
 }

@@ -13,6 +13,11 @@ typedef struct Network {
 	struct Matrix *weights;
 } Network;
 
+typedef struct Updates {
+	struct Matrix *nabla_w;
+	struct Matrix *nabla_b;
+} Updates;
+
 void init_network(Network *network, int num_layers, int *sizes);
 
 void forward_prop(Network *network, struct Matrix *input, struct Matrix *output);

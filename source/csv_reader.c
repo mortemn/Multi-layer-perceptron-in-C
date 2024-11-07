@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include "csv_reader.h"
 #include "math_utils.h"
 
 #define MAXCHAR 10000
@@ -44,10 +45,6 @@ void load_data_train(int num_train, int num_pixels, float data_train[num_pixels]
         for (int j = 0; j < num_pixels; j++) {
             data_train[j][i] = data[i][j];
         }
-    }
-
-    for (int i = 0; i < num_pixels; i++) {
-        printf("%f\n", data_train[i][0]);
     }
 
     free(data);
