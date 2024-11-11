@@ -62,6 +62,14 @@ void mul_matrix(struct Matrix *a, struct Matrix *b, struct Matrix *c) {
     }
 }
 
+void scalar_mul_matrix(struct Matrix *a, float n, struct Matrix *b) {
+    for (int i = 0; i < a->rows; i++) {
+        for (int j = 0; j < a->cols; j++) {
+            b->data[i][j] = a->data[i][j] * n;
+        }
+    }
+}
+
 void hadamard_matrix(struct Matrix *a, struct Matrix *b, struct Matrix *c) {
     for (int i = 0; i < a->rows; i++) {
         for (int j = 0; j < a->cols; j++) {

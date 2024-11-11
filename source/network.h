@@ -13,10 +13,10 @@ typedef struct Network {
 	struct Matrix *weights;
 } Network;
 
-typedef struct Updates {
+typedef struct Delta {
 	struct Matrix *nabla_w;
 	struct Matrix *nabla_b;
-} Updates;
+} Delta;
 
 void init_network(Network *network, int num_layers, int *sizes);
 
