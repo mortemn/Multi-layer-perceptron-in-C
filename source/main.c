@@ -1,6 +1,6 @@
 #include "csv_reader.h"
 #include "network.h"
-#include "math_utils.h"
+#include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -19,21 +19,16 @@ int sizes[3] = {784, 30, 10};
 
 int main() {
     srand(time(NULL));
+
+    printf("Loading CSV...\n");
     load_data_train(num_train, num_pixels, data_train, labels_train);
     load_data_test(num_test, num_pixels, data_test, labels_test);
 
+    printf("Initializing network...\n");
     Network network;
     init_network(&network, 3, sizes);
 
-    Matrix input;
-    init_matrix(&input, num_pixels, 1);
-
-    Matrix output;
-
-    for (int i = 0; i < num_pixels; i++) {
-        input.data[i][0] = data_test[i][0];
-    }
-
+    printf("Training network...\n");
     sgd(&network, data_train, labels_train, data_test, labels_test, 30, 10, 3.0);
 
     return 0;

@@ -110,56 +110,70 @@ Delta backprop(struct Network *network, Matrix *input, int label) {
     activations[0] = *input;
     Matrix zs[network->num_layers - 1];
 
+    Matrix activation;
+    activation = activations[0];
+
     for (int i = 0; i < network->num_layers - 1; i++) {
-        init_matrix(&zs[i], network->weights[i].rows, input->cols);
-        init_matrix(&activations[i + 1], network->weights[i].rows, input->cols);
+        init_matrix(&zs[i], network->weights[i].rows, activations[i].cols);
 
-        mul_matrix(&network->weights[i], input, &zs[i]);
-        add_matrix(&zs[i], &network->biases[i], &activations[i + 1]);
-        sigmoid_matrix(&activations[i + 1], &activations[i + 1]);
+        mul_matrix(&network->weights[i], &activations[i], &zs[i]);
+        add_matrix(&zs[i], &network->biases[i], &zs[i]);
 
-        free_matrix(input);
-        *input = activations[i + 1];
+        init_matrix(&activations[i + 1], zs[i].rows, zs[i].cols);
+        sigmoid_matrix(&zs[i], &activations[i + 1]);
     }
 
     // Backward pass.
     
     Matrix delta;
-    init_matrix(&delta, network->sizes[network->num_layers - 1], 1);
+    init_matrix(&delta, activations[network->num_layers - 1].rows, activations[network->num_layers - 1].cols);
     Matrix cost_derivative;
-    init_matrix(&cost_derivative, network->sizes[network->num_layers - 1], 1);
+    init_matrix(&cost_derivative, activations[network->num_layers - 1].rows, activations[network->num_layers - 1].cols);
+
+    Matrix sp;
+    init_matrix(&sp, activations[network->num_layers - 1].rows, activations[network->num_layers - 1].cols);
+    sigmoid_derivative_matrix(&zs[network->num_layers - 2], &sp);
 
     sub_matrix(&activations[network->num_layers - 1], &expected, &cost_derivative); 
-    hadamard_matrix(&cost_derivative, &activations[network->num_layers - 1], &delta);
+    hadamard_matrix(&cost_derivative, &sp, &delta);
 
     free_matrix(&expected);
     free_matrix(&cost_derivative);
+    free_matrix(&sp);
 
-    updates.nabla_b[network->num_layers - 2] = delta;
+    updates.nabla_b[network->num_layers - 1] = delta;
 
     Matrix transposed;
     transpose_matrix(&activations[network->num_layers - 2], &transposed);
-    mul_matrix(&delta, &transposed, &updates.nabla_w[network->num_layers - 2]);
+    mul_matrix(&delta, &transposed, &updates.nabla_w[network->num_layers - 1]);
+
     free_matrix(&transposed);
 
     for (int i = network->num_layers - 2; i > 0; i--) {
+        printf("Backprop layer %d\n", i);
         Matrix z = zs[i - 1];
 
         Matrix sp;
         init_matrix(&sp, z.rows, z.cols);
+
+        // Todo: Find if sigmoid prime is supposed to be this small (returning 0's).
         sigmoid_derivative_matrix(&z, &sp);
 
         Matrix transposed;
         transpose_matrix(&network->weights[i], &transposed);
 
-        mul_matrix(&transposed, &delta, &delta);
+        mul_mod_matrix(&transposed, &delta);
         hadamard_matrix(&delta, &sp, &delta);
 
         free_matrix(&sp);
         free_matrix(&transposed);
+        free_matrix(&z);
 
         updates.nabla_b[i - 1] = delta;
-        mul_matrix(&delta, &activations[i - 1], &updates.nabla_w[i - 1]);
+        transpose_matrix(&activations[i - 1], &transposed);
+        mul_matrix(&delta, &transposed, &updates.nabla_w[i - 1]);
+
+        free_matrix(&transposed);
     }
 
     free_matrix(&delta);
@@ -234,7 +248,7 @@ void sgd(struct Network *network, float data_train[num_pixels][num_train], int l
         shuffle(num_pixels, num_train, data_train);
         int batch_progress = 0;
         while (batch_progress < num_train) {
-            printf("Epoch %d\n", i);
+            printf("Epoch %d\n", i+1);
             process_batch(network, data_train, labels_train, batch_progress, mini_batch_size, eta);
             batch_progress += num_train;
             accuracy(network, data_test, labels_test);

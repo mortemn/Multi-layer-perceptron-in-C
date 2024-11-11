@@ -10,7 +10,7 @@ float sigmoid(float x) {
 }
 
 float sigmoid_derivative(float x) {
-    return x * (1 - x);
+    return sigmoid(x) * (1 - sigmoid(x));
 }
 
 // Samples from a normal distribution using Marsaglia polar method.
@@ -51,6 +51,11 @@ void free_matrix(struct Matrix *matrix) {
 }
 
 void mul_matrix(struct Matrix *a, struct Matrix *b, struct Matrix *c) {
+    if (a->cols != b->rows) {
+        printf("Matrix dimensions do not match for multiplication.\n");
+        exit(1);
+    }
+
     for (int i = 0; i < a->rows; i++) {
         for (int j = 0; j < b->cols; j++) {
             c->data[i][j] = 0;
@@ -60,6 +65,37 @@ void mul_matrix(struct Matrix *a, struct Matrix *b, struct Matrix *c) {
             }
         }
     }
+}
+
+// Multiply matrix and modify matrix b with result.
+void mul_mod_matrix(struct Matrix *a, struct Matrix *b) {
+    if (a->cols != b->rows) {
+        printf("Matrix dimensions do not match for multiplication (mul mod).\n");
+        printf("a->cols: %d, b->rows: %d\n", a->cols, b->rows);
+        exit(1);
+    }
+
+    struct Matrix temp;
+    init_matrix(&temp, a->rows, b->cols);
+
+    for (int i = 0; i < a->rows; i++) {
+        for (int j = 0; j < b->cols; j++) {
+            temp.data[i][j] = 0;
+
+            for (int k = 0; k < a->cols; k++) {
+                temp.data[i][j] += a->data[i][k] * b->data[k][j];
+            }
+        }
+    }
+
+    for (int i = 0; i < b->rows; i++) {
+        free(b->data[i]);
+    }
+    free(b->data);
+
+    b->rows = temp.rows;
+    b->cols = temp.cols;
+    b->data = temp.data;
 }
 
 void scalar_mul_matrix(struct Matrix *a, float n, struct Matrix *b) {
@@ -79,6 +115,11 @@ void hadamard_matrix(struct Matrix *a, struct Matrix *b, struct Matrix *c) {
 }
 
 void add_matrix(struct Matrix *a, struct Matrix *b, struct Matrix *c) {
+    if (a->rows != b->rows || a->cols != b->cols) {
+        printf("Matrix dimensions do not match for addition.\n");
+        exit(1);
+    }
+
     for (int i = 0; i < a->rows; i++) {
         for (int j = 0; j < a->cols; j++) {
             c->data[i][j] = a->data[i][j] + b->data[i][j]; 
@@ -87,6 +128,11 @@ void add_matrix(struct Matrix *a, struct Matrix *b, struct Matrix *c) {
 }
 
 void sub_matrix(struct Matrix *a, struct Matrix *b, struct Matrix *c) {
+    if (a->rows != b->rows || a->cols != b->cols) {
+        printf("Matrix dimensions do not match for subtraction.\n");
+        exit(1);
+    }
+
     for (int i = 0; i < a->rows; i++) {
         for (int j = 0; j < a->cols; j++) {
             c->data[i][j] = a->data[i][j] - b->data[i][j]; 
