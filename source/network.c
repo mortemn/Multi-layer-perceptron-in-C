@@ -211,7 +211,6 @@ void process_batch(struct Network *network, float data_train[num_pixels][num_tra
             add_matrix(&n_delta.nabla_w[j], &delta.nabla_w[j], &delta.nabla_w[j]);
         }
 
-        // TODO: Figure out why freeing n_delta affects delta.
         free_delta(n_delta, network->num_layers - 1);
         free_matrix(&sample);
     }
