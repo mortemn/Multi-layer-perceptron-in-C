@@ -155,7 +155,7 @@ Delta backprop(struct Network *network, Matrix *input, int label) {
         Matrix sp;
         init_matrix(&sp, z.rows, z.cols);
 
-        // Todo: Find if sigmoid prime is supposed to be this small (returning 0's).
+        // TODO: Find if sigmoid prime is supposed to be this small (returning 0's).
         sigmoid_derivative_matrix(&z, &sp);
 
         Matrix transposed;
