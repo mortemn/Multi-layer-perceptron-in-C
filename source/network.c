@@ -35,8 +35,8 @@ void free_network (Network network) {
     free(network.sizes);
 }
 
-void free_delta (Delta delta) {
-    for (int i = 0; i < delta.nabla_w->rows; i++) {
+void free_delta(Delta delta, int n) {
+    for (int i = 0; i < n; i++) {
         free_matrix(&delta.nabla_w[i]);
         free_matrix(&delta.nabla_b[i]);
     }
@@ -150,7 +150,6 @@ Delta backprop(struct Network *network, Matrix *input, int label) {
     free_matrix(&transposed);
 
     for (int i = network->num_layers - 2; i > 0; i--) {
-        printf("Backprop layer %d\n", i);
         Matrix z = zs[i - 1];
 
         Matrix sp;
@@ -176,8 +175,6 @@ Delta backprop(struct Network *network, Matrix *input, int label) {
         free_matrix(&transposed);
     }
 
-    free_matrix(&delta);
-
     return updates;
 }
 
@@ -199,14 +196,15 @@ void process_batch(struct Network *network, float data_train[num_pixels][num_tra
         Matrix sample;
         index_input(data_train, batch_start + i, &sample);
 
-        Delta n_delta;
-        n_delta = backprop(network, &sample, batch_start + i);
+        Delta n_delta = backprop(network, &sample, batch_start + i);
 
         for (int j = 0; j < network->num_layers - 1; j++) {
-            add_matrix(n_delta.nabla_b, delta.nabla_b, delta.nabla_b);
-            add_matrix(n_delta.nabla_w, delta.nabla_w, delta.nabla_w);
+            add_matrix(&n_delta.nabla_b[j], &delta.nabla_b[j], &delta.nabla_b[j]);
+            add_matrix(&n_delta.nabla_w[j], &delta.nabla_w[j], &delta.nabla_w[j]);
         }
-        free_delta(n_delta);
+
+        // TODO: Figure out why freeing n_delta affects delta.
+        // free_delta(n_delta, network->num_layers - 1);
         free_matrix(&sample);
     }
     
@@ -219,12 +217,12 @@ void process_batch(struct Network *network, float data_train[num_pixels][num_tra
         scalar_mul_matrix(&delta.nabla_b[i], eta/batch_size, &delta.nabla_b[i]);
         sub_matrix(&network->biases[i], &delta.nabla_b[i], &network->biases[i]);
     }
-    free_delta(delta);
+    free_delta(delta, network->num_layers - 1);
 }
 
 
 void accuracy(struct Network *network, float data_test[num_pixels][num_test], int labels_test[num_test]) {
-    printf("%s\n", "Calculating accuracy");
+    printf("%s\n", "Calculating accuracy...");
     int correct = 0;
     for (int i = 0; i < num_test; i++) {
         Matrix input;
@@ -236,7 +234,6 @@ void accuracy(struct Network *network, float data_test[num_pixels][num_test], in
         int n = get_prediction(&output);
         if (labels_test[i] == n) correct += 1; 
 
-        free_matrix(&input);
         free_matrix(&output);
     }
     float accuracy = (float)correct/(float)num_test;
