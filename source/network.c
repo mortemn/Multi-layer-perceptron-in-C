@@ -36,13 +36,19 @@ void free_network (Network network) {
 }
 
 void free_delta(Delta delta, int n) {
-    for (int i = 0; i < n; i++) {
-        free_matrix(&delta.nabla_w[i]);
-        free_matrix(&delta.nabla_b[i]);
+    if (delta.nabla_w) {
+        for (int i = 0; i < n; i++) {
+            free_matrix(&delta.nabla_w[i]);
+        }
+        free(delta.nabla_w);
     }
 
-    free(delta.nabla_w);
-    free(delta.nabla_b);
+    if (delta.nabla_b) {
+        for (int i = 0; i < n; i++) {
+            free_matrix(&delta.nabla_b[i]);
+        }
+        free(delta.nabla_b);
+    }
 }
 
 // Forward propagation algorithm (feedforward).
@@ -89,11 +95,12 @@ Delta backprop(struct Network *network, Matrix *input, int label) {
 
     for (int i = 0; i < network->num_layers - 1; i++) {
         init_matrix(&updates.nabla_w[i], network->weights[i].rows, network->weights[i].cols);
+        zero_matrix(&updates.nabla_w[i]);
+
         init_matrix(&updates.nabla_b[i], network->biases[i].rows, network->biases[i].cols);
+        zero_matrix(&updates.nabla_b[i]);
     }
 
-    zero_matrix(updates.nabla_w);
-    zero_matrix(updates.nabla_b);
 
     Matrix expected;
     init_matrix(&expected, network->sizes[network->num_layers - 1], 1);
@@ -123,7 +130,7 @@ Delta backprop(struct Network *network, Matrix *input, int label) {
         sigmoid_matrix(&zs[i], &activations[i + 1]);
     }
 
-    // Backward pass.
+    // Backward pass
     
     Matrix delta;
     init_matrix(&delta, activations[network->num_layers - 1].rows, activations[network->num_layers - 1].cols);
@@ -141,11 +148,11 @@ Delta backprop(struct Network *network, Matrix *input, int label) {
     free_matrix(&cost_derivative);
     free_matrix(&sp);
 
-    updates.nabla_b[network->num_layers - 1] = delta;
+    copy_matrix(&delta, &updates.nabla_b[network->num_layers - 2]);
 
     Matrix transposed;
     transpose_matrix(&activations[network->num_layers - 2], &transposed);
-    mul_matrix(&delta, &transposed, &updates.nabla_w[network->num_layers - 1]);
+    mul_matrix(&delta, &transposed, &updates.nabla_w[network->num_layers - 2]);
 
     free_matrix(&transposed);
 
@@ -168,7 +175,8 @@ Delta backprop(struct Network *network, Matrix *input, int label) {
         free_matrix(&transposed);
         free_matrix(&z);
 
-        updates.nabla_b[i - 1] = delta;
+        copy_matrix(&delta, &updates.nabla_b[i - 1]);
+
         transpose_matrix(&activations[i - 1], &transposed);
         mul_matrix(&delta, &transposed, &updates.nabla_w[i - 1]);
 
@@ -204,7 +212,7 @@ void process_batch(struct Network *network, float data_train[num_pixels][num_tra
         }
 
         // TODO: Figure out why freeing n_delta affects delta.
-        // free_delta(n_delta, network->num_layers - 1);
+        free_delta(n_delta, network->num_layers - 1);
         free_matrix(&sample);
     }
     

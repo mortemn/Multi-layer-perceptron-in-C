@@ -204,3 +204,11 @@ void shuffle(int rows, int cols, float data[rows][cols]) {
         }
     }
 }
+
+void copy_matrix(Matrix *a, Matrix *b) {
+    for (int i = 0; i < a->rows; i++) {
+        for (int j = 0; j < a->cols; j++) {
+            b->data[i][j] = a->data[i][j];
+        }
+    }
+}

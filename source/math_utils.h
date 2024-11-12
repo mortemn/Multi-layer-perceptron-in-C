@@ -35,6 +35,8 @@ void sigmoid_derivative_matrix(Matrix *a, Matrix *b);
 
 void print_matrix(Matrix *matrix);
 
+void copy_matrix(Matrix *a, Matrix *b);
+
 float sigmoid(float);
 
 float sigmoid_derivative(float);

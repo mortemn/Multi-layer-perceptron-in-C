@@ -20,6 +20,8 @@ typedef struct Delta {
 
 void init_network(Network *network, int num_layers, int *sizes);
 
+void free_network(Network network);
+
 void forward_prop(Network *network, struct Matrix *input, struct Matrix *output);
 
 void sgd(Network *network, float data_train[num_pixels][num_train], int labels_train[num_train], float data_test[num_pixels][num_test], int labels_test[num_test], int epochs, int mini_batch_size, float eta);
