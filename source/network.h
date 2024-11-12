@@ -20,7 +20,7 @@ typedef struct Delta {
 
 void init_network(Network *network, int num_layers, int *sizes);
 
-void free_network(Network network);
+void free_network(Network *network);
 
 void forward_prop(Network *network, struct Matrix *input, struct Matrix *output);
 

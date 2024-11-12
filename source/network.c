@@ -24,15 +24,15 @@ void init_network(struct Network *network, int num_layers, int *sizes) {
     }
 }
 
-void free_network (Network network) {
-    for (int i = 0; i < network.num_layers - 1; i++) {
-        free_matrix(&network.biases[i]);
-        free_matrix(&network.weights[i]);
+void free_network (Network *network) {
+    for (int i = 0; i < network->num_layers - 1; i++) {
+        free_matrix(&network->biases[i]);
+        free_matrix(&network->weights[i]);
     }
 
-    free(network.biases);
-    free(network.weights);
-    free(network.sizes);
+    free(network->biases);
+
+    free(network->weights);
 }
 
 void free_delta(Delta delta, int n) {

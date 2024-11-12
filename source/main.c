@@ -29,8 +29,8 @@ int main() {
     init_network(&network, 3, sizes);
 
     printf("Training network...\n");
-    sgd(&network, data_train, labels_train, data_test, labels_test, 30, 10, 3.0);
+    sgd(&network, data_train, labels_train, data_test, labels_test, 5, 10, 3.0);
 
-    free_network(network);
+    free_network(&network);
     return 0;
 }
