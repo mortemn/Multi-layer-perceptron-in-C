@@ -43,6 +43,6 @@ float randn();
 
 void transpose_matrix(Matrix *a, Matrix *b);
 
-void shuffle(int rows, int cols, float data[rows][cols]);
+void shuffle(int rows, int cols, float data[rows][cols], int labels[cols]);
 
 #endif

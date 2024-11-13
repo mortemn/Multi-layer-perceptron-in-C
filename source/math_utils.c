@@ -159,9 +159,10 @@ void transpose_matrix(struct Matrix *a, struct Matrix *b) {
     }
 }
 
-void shuffle(int rows, int cols, float data[rows][cols]) {
+void shuffle(int rows, int cols, float data[rows][cols], int labels[cols]) {
     int rand_col = 0;
     float temp;
+    int temp_label;
 
     for (int j = 0; j < cols; j++) {
         rand_col = rand() % cols;
@@ -171,6 +172,10 @@ void shuffle(int rows, int cols, float data[rows][cols]) {
             data[i][j] = data[i][rand_col];
             data[i][rand_col] = temp;
         }
+
+        temp_label = labels[j];
+        labels[j] = labels[rand_col];
+        labels[rand_col] = temp_label;
     }
 }
 

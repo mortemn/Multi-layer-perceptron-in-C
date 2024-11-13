@@ -200,24 +200,19 @@ void process_batch(struct Network *network, float data_train[num_pixels][num_tra
 
     for (int i = 0; i < network->num_layers - 1; i++) {
         init_matrix(&delta.nabla_w[i], network->weights[i].rows, network->weights[i].cols);
-        zero_matrix(&delta.nabla_w[i]);
 
         init_matrix(&delta.nabla_b[i], network->biases[i].rows, network->biases[i].cols);
-        zero_matrix(&delta.nabla_b[i]);
     }
 
     for (int i = 0; i < batch_size; i++) {
         Matrix sample;
         index_input(data_train, batch_start + i, &sample);
 
-        // Load values of input into a file. Each pixel value being separated by a line.
+        for (int i = 0; i < network->num_layers - 1; i++) {
+            zero_matrix(&delta.nabla_w[i]);
 
-        printf("Label: %d\n", labels_train[batch_start + i]);
-        FILE *f = fopen("input.txt", "w");
-        for (int j = 0; j < num_pixels; j++) {
-            fprintf(f, "%f\n", sample.data[j][0]);
+            zero_matrix(&delta.nabla_b[i]);
         }
-        fclose(f);
 
         Delta n_delta = backprop(network, &sample, labels_train[batch_start + i]);
 
@@ -258,14 +253,14 @@ void accuracy(struct Network *network, float data_test[num_pixels][num_test], in
 
         free_matrix(&output);
     }
-    float accuracy = (float)correct/(float)num_test;
-    printf("Accuracy: %f\n", accuracy);
+    printf("Accuracy: %d / %d \n", correct, num_test);
 }
 
 void sgd(struct Network *network, float data_train[num_pixels][num_train], int labels_train[num_train], float data_test[num_pixels][num_test], int labels_test[num_test], int epochs, int mini_batch_size, float eta) {
     for (int i = 0; i < epochs; i++) {
         printf("Epoch %d\n", i+1);
-        shuffle(num_pixels, num_train, data_train);
+        shuffle(num_pixels, num_train, data_train, labels_train);
+
         int batch_progress = 0;
         while (batch_progress < num_train) {
             process_batch(network, data_train, labels_train, batch_progress, mini_batch_size, eta);
