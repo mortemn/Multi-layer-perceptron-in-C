@@ -117,12 +117,10 @@ Delta backprop(struct Network *network, Matrix *input, int label) {
     activations[0] = *input;
     Matrix zs[network->num_layers - 1];
 
-    Matrix activation;
-    activation = activations[0];
-
     for (int i = 0; i < network->num_layers - 1; i++) {
         init_matrix(&zs[i], network->weights[i].rows, activations[i].cols);
 
+        // wa + b.
         mul_matrix(&network->weights[i], &activations[i], &zs[i]);
         add_matrix(&zs[i], &network->biases[i], &zs[i]);
 
@@ -132,6 +130,8 @@ Delta backprop(struct Network *network, Matrix *input, int label) {
 
     // Backward pass
     
+    // delta = (a - y) * sigmoid_prime(z).
+
     Matrix delta;
     init_matrix(&delta, activations[network->num_layers - 1].rows, activations[network->num_layers - 1].cols);
     Matrix cost_derivative;
@@ -157,7 +157,8 @@ Delta backprop(struct Network *network, Matrix *input, int label) {
     free_matrix(&transposed);
 
     for (int i = network->num_layers - 2; i > 0; i--) {
-        Matrix z = zs[i - 1];
+        Matrix z;
+        copy_matrix(&zs[i - 1], &z);
 
         Matrix sp;
         init_matrix(&sp, z.rows, z.cols);
@@ -168,7 +169,13 @@ Delta backprop(struct Network *network, Matrix *input, int label) {
         Matrix transposed;
         transpose_matrix(&network->weights[i], &transposed);
 
-        mul_mod_matrix(&transposed, &delta);
+        Matrix res;
+        init_matrix(&res, transposed.rows, delta.cols);
+        mul_matrix(&transposed, &delta, &res);
+        free_matrix(&delta);
+        copy_matrix(&res, &delta);
+        free_matrix(&res);
+
         hadamard_matrix(&delta, &sp, &delta);
 
         free_matrix(&sp);
@@ -187,7 +194,6 @@ Delta backprop(struct Network *network, Matrix *input, int label) {
 }
 
 void process_batch(struct Network *network, float data_train[num_pixels][num_train], int labels_train[num_train], int batch_start, int batch_size, float eta) {
-    printf("%s\n", "Processing batch...");
     Delta delta;
     delta.nabla_w = malloc((network->num_layers - 1) * sizeof(struct Matrix));
     delta.nabla_b = malloc((network->num_layers - 1) * sizeof(struct Matrix));
@@ -204,7 +210,16 @@ void process_batch(struct Network *network, float data_train[num_pixels][num_tra
         Matrix sample;
         index_input(data_train, batch_start + i, &sample);
 
-        Delta n_delta = backprop(network, &sample, batch_start + i);
+        // Load values of input into a file. Each pixel value being separated by a line.
+
+        printf("Label: %d\n", labels_train[batch_start + i]);
+        FILE *f = fopen("input.txt", "w");
+        for (int j = 0; j < num_pixels; j++) {
+            fprintf(f, "%f\n", sample.data[j][0]);
+        }
+        fclose(f);
+
+        Delta n_delta = backprop(network, &sample, labels_train[batch_start + i]);
 
         for (int j = 0; j < network->num_layers - 1; j++) {
             add_matrix(&n_delta.nabla_b[j], &delta.nabla_b[j], &delta.nabla_b[j]);
@@ -231,7 +246,7 @@ void process_batch(struct Network *network, float data_train[num_pixels][num_tra
 void accuracy(struct Network *network, float data_test[num_pixels][num_test], int labels_test[num_test]) {
     printf("%s\n", "Calculating accuracy...");
     int correct = 0;
-    for (int i = 0; i < num_test; i++) {
+   for (int i = 0; i < num_test; i++) {
         Matrix input;
         Matrix output;
 
@@ -249,13 +264,13 @@ void accuracy(struct Network *network, float data_test[num_pixels][num_test], in
 
 void sgd(struct Network *network, float data_train[num_pixels][num_train], int labels_train[num_train], float data_test[num_pixels][num_test], int labels_test[num_test], int epochs, int mini_batch_size, float eta) {
     for (int i = 0; i < epochs; i++) {
+        printf("Epoch %d\n", i+1);
         shuffle(num_pixels, num_train, data_train);
         int batch_progress = 0;
         while (batch_progress < num_train) {
-            printf("Epoch %d\n", i+1);
             process_batch(network, data_train, labels_train, batch_progress, mini_batch_size, eta);
-            batch_progress += num_train;
-            accuracy(network, data_test, labels_test);
+            batch_progress += mini_batch_size;
         }
+        accuracy(network, data_test, labels_test);
     }
 }

@@ -19,8 +19,6 @@ void free_matrix(Matrix *matrix);
 
 void mul_matrix(Matrix *a, Matrix *b, Matrix *c);
 
-void mul_mod_matrix(Matrix *a, Matrix *b);
-
 void scalar_mul_matrix(Matrix *a, float n, Matrix *b);
 
 void hadamard_matrix(Matrix *a, Matrix *b, Matrix *c);
