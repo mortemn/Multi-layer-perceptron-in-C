@@ -76,6 +76,11 @@ void scalar_mul_matrix(struct Matrix *a, float n, struct Matrix *b) {
 }
 
 void hadamard_matrix(struct Matrix *a, struct Matrix *b, struct Matrix *c) {
+    if (a->rows != b->rows || a->cols != b->cols) {
+        printf("Matrix dimensions do not match for Hadamard product.\n");
+        exit(1);
+    }
+
     for (int i = 0; i < a->rows; i++) {
         for (int j = 0; j < a->cols; j++) {
             c->data[i][j] = a->data[i][j] * b->data[i][j];
@@ -131,6 +136,16 @@ void print_matrix(struct Matrix *matrix) {
             printf("%f ", matrix->data[i][j]);
         }
         printf("\n");
+    }
+}
+
+// Load matrix to a file
+void load_matrix(struct Matrix *matrix, FILE *f) {
+    for (int i = 0; i < matrix->rows; i++) {
+        for (int j = 0; j < matrix->cols; j++) {
+            fprintf(f, "%f ", matrix->data[i][j]);
+        }
+        fprintf(f, "\n");
     }
 }
 

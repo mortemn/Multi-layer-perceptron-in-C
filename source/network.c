@@ -65,10 +65,9 @@ void forward_prop(struct Network *network, struct Matrix *input, struct Matrix *
         sigmoid_matrix(output, output);
 
         free_matrix(input);
+        free_matrix(&z);
         *input = *output;
     }
-
-    free_matrix(&z);
 }
 
 void index_input(float data[num_pixels][num_train], int index, struct Matrix *input) {
@@ -137,16 +136,13 @@ Delta backprop(struct Network *network, Matrix *input, int label) {
     Matrix cost_derivative;
     init_matrix(&cost_derivative, activations[network->num_layers - 1].rows, activations[network->num_layers - 1].cols);
 
-    Matrix sp;
-    init_matrix(&sp, activations[network->num_layers - 1].rows, activations[network->num_layers - 1].cols);
-    sigmoid_derivative_matrix(&zs[network->num_layers - 2], &sp);
+    sigmoid_derivative_matrix(&zs[network->num_layers - 2], &delta);
 
     sub_matrix(&activations[network->num_layers - 1], &expected, &cost_derivative); 
-    hadamard_matrix(&cost_derivative, &sp, &delta);
+    hadamard_matrix(&cost_derivative, &delta, &delta);
 
     free_matrix(&expected);
     free_matrix(&cost_derivative);
-    free_matrix(&sp);
 
     copy_matrix(&delta, &updates.nabla_b[network->num_layers - 2]);
 
@@ -157,13 +153,13 @@ Delta backprop(struct Network *network, Matrix *input, int label) {
     free_matrix(&transposed);
 
     for (int i = network->num_layers - 2; i > 0; i--) {
+        // delta^l = ((w^(l+1))^T * delta^(l+1)) * sigmoid_prime(z^l).
         Matrix z;
         copy_matrix(&zs[i - 1], &z);
 
         Matrix sp;
         init_matrix(&sp, z.rows, z.cols);
 
-        // TODO: Find if sigmoid prime is supposed to be this small (returning 0's).
         sigmoid_derivative_matrix(&z, &sp);
 
         Matrix transposed;
@@ -200,19 +196,15 @@ void process_batch(struct Network *network, float data_train[num_pixels][num_tra
 
     for (int i = 0; i < network->num_layers - 1; i++) {
         init_matrix(&delta.nabla_w[i], network->weights[i].rows, network->weights[i].cols);
+        zero_matrix(&delta.nabla_w[i]);
 
         init_matrix(&delta.nabla_b[i], network->biases[i].rows, network->biases[i].cols);
+        zero_matrix(&delta.nabla_b[i]);
     }
 
     for (int i = 0; i < batch_size; i++) {
         Matrix sample;
         index_input(data_train, batch_start + i, &sample);
-
-        for (int i = 0; i < network->num_layers - 1; i++) {
-            zero_matrix(&delta.nabla_w[i]);
-
-            zero_matrix(&delta.nabla_b[i]);
-        }
 
         Delta n_delta = backprop(network, &sample, labels_train[batch_start + i]);
 
@@ -249,7 +241,29 @@ void accuracy(struct Network *network, float data_test[num_pixels][num_test], in
         forward_prop(network, &input, &output);
 
         int n = get_prediction(&output);
-        if (labels_test[i] == n) correct += 1; 
+
+        if (labels_test[i] == n) {
+            correct += 1;
+        } else {
+            // Load input data with expected output and acutal output on the same line followed by greyscale pixel values separated by line breaks into file named input.txt
+            FILE *f = fopen("input.txt", "w");
+            if (f == NULL) {
+                printf("Error opening file!\n");
+                exit(1);
+            }
+
+            fprintf(f, "%s\n", "Output: ");
+            for (int j = 0; j < output.rows; j++) {
+                fprintf(f, "%f\n", output.data[j][0]);
+            }
+
+            fprintf(f, "Expected: %d\n", labels_test[i]);
+            fprintf(f, "Actual: %d\n", n);
+            for (int j = 0; j < num_pixels; j++) {
+                fprintf(f, "%f\n", data_test[j][i]);
+            }
+            fclose(f);
+        }
 
         free_matrix(&output);
     }
@@ -259,7 +273,7 @@ void accuracy(struct Network *network, float data_test[num_pixels][num_test], in
 void sgd(struct Network *network, float data_train[num_pixels][num_train], int labels_train[num_train], float data_test[num_pixels][num_test], int labels_test[num_test], int epochs, int mini_batch_size, float eta) {
     for (int i = 0; i < epochs; i++) {
         printf("Epoch %d\n", i+1);
-        shuffle(num_pixels, num_train, data_train, labels_train);
+        // shuffle(num_pixels, num_train, data_train, labels_train);
 
         int batch_progress = 0;
         while (batch_progress < num_train) {
